@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>あさのじゅんびマスター</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -10,7 +10,7 @@
         
         body {
             font-family: 'Zen Maru Gothic', sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* 全体のスクロールを禁止 */
         }
 
         .card-container {
@@ -39,7 +39,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 1.5rem;
+            border-radius: 1.25rem;
             border-width: 4px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
@@ -62,79 +62,77 @@
         }
     </style>
 </head>
-<body class="bg-blue-50 h-screen w-screen p-6">
+<body class="bg-blue-50 h-[100dvh] w-screen p-4 lg:p-6">
 
-    <div class="flex h-full gap-6">
-        <!-- 左側: タスク管理エリア -->
-        <div class="w-2/3 bg-white rounded-[2rem] shadow-xl p-8 flex flex-col h-full border-b-8 border-blue-200">
-            <div class="flex justify-between items-end mb-6">
+    <div class="flex flex-col lg:flex-row h-full gap-4 lg:gap-6">
+        
+        <!-- 時計・カウントダウンエリア (縦向き時は上部、横向き時は右側) -->
+        <div class="w-full lg:w-1/3 flex flex-row lg:flex-col gap-4 lg:gap-6 shrink-0 order-1 lg:order-2">
+            <!-- デジタル時計 -->
+            <div class="flex-1 lg:flex-none bg-gradient-to-br from-yellow-300 to-yellow-400 rounded-[1.5rem] lg:rounded-[2rem] shadow-xl p-4 lg:p-8 flex flex-col items-center justify-center text-white border-b-4 lg:border-b-8 border-yellow-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2 opacity-80 hidden lg:block"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div id="digital-clock" class="text-4xl lg:text-7xl font-black drop-shadow-lg tracking-tight leading-none">00:00</div>
+                <div id="digital-seconds" class="text-lg lg:text-2xl font-bold opacity-90">00</div>
+            </div>
+
+            <!-- 出発カウントダウン -->
+            <div class="flex-1 lg:flex-1 bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-xl p-4 lg:p-8 flex flex-col items-center justify-center border-t-8 lg:border-t-[12px] border-orange-400 relative overflow-hidden">
+                <div class="text-orange-500 font-black text-sm lg:text-2xl mb-2 lg:mb-4 flex items-center gap-2">
+                    <span>しゅっぱつまで</span>
+                </div>
+                
+                <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6">
+                    あと -- 分 -- 秒
+                </div>
+                
+                <div class="w-full border-t border-gray-100 pt-2 lg:pt-6">
+                    <label class="block text-center text-[10px] lg:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 lg:mb-2">じかん</label>
+                    <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full p-2 lg:p-4 bg-gray-50 border-2 border-gray-100 rounded-xl lg:rounded-2xl text-xl lg:text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
+                </div>
+            </div>
+        </div>
+
+        <!-- タスク管理エリア (縦向き時は下部、横向き時は左側) -->
+        <div class="flex-1 min-h-0 w-full lg:w-2/3 bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-xl p-4 lg:p-8 flex flex-col order-2 lg:order-1 border-b-8 border-blue-200">
+            <div class="flex justify-between items-center lg:items-end mb-4 lg:mb-6">
                 <div>
-                    <h1 class="text-4xl font-black text-blue-600 mb-2">あさのじゅんび</h1>
-                    <div class="flex items-center gap-4">
-                        <div class="w-64 h-6 bg-gray-100 rounded-full overflow-hidden border-2 border-gray-50">
+                    <h1 class="text-2xl lg:text-4xl font-black text-blue-600 lg:mb-2">あさのじゅんび</h1>
+                    <div class="flex items-center gap-2 lg:gap-4">
+                        <div class="w-32 lg:w-64 h-4 lg:h-6 bg-gray-100 rounded-full overflow-hidden border-2 border-gray-50">
                             <div id="progress-bar" class="h-full bg-green-400 transition-all duration-500 ease-out" style="width: 0%"></div>
                         </div>
-                        <span id="progress-text" class="font-bold text-xl text-gray-500">0 / 0</span>
+                        <span id="progress-text" class="font-bold text-sm lg:text-xl text-gray-500">0 / 0</span>
                     </div>
                 </div>
-                <button onclick="toggleSettings()" class="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                <button onclick="toggleSettings()" class="p-2 lg:p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
             </div>
 
-            <!-- タスクグリッド -->
-            <div id="task-grid" class="flex-1 overflow-y-auto pr-2 grid grid-cols-2 lg:grid-cols-3 gap-6 content-start pb-4">
+            <!-- タスクグリッド (ここだけがスクロールされる) -->
+            <div id="task-grid" class="flex-1 overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 lg:gap-6 content-start pb-4">
                 <!-- JavaScriptで生成 -->
             </div>
 
             <!-- 下部操作エリア -->
-            <div class="mt-4 flex justify-between items-center">
-                <div id="add-task-form" class="flex gap-2 items-center">
-                    <input type="text" id="new-task-input" placeholder="あたらしいタスク" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-blue-400 outline-none font-bold">
+            <div class="mt-4 flex flex-col lg:flex-row justify-between items-center gap-2">
+                <div id="add-task-form" class="flex gap-2 items-center w-full lg:w-auto">
+                    <input type="text" id="new-task-input" placeholder="あたらしいタスク" class="flex-1 lg:w-48 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-blue-400 outline-none font-bold text-sm lg:text-base">
                     <button onclick="addTask()" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-xl transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </button>
                 </div>
-                <button onclick="resetAll()" class="flex items-center gap-2 text-gray-400 hover:text-gray-600 font-bold transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                <button onclick="resetAll()" class="flex items-center gap-2 text-gray-400 hover:text-gray-600 font-bold transition-colors text-xs lg:text-base">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                     はじめからやりなおす
                 </button>
             </div>
         </div>
 
-        <!-- 右側: 時計・カウントダウンエリア -->
-        <div class="w-1/3 flex flex-col gap-6 h-full">
-            <!-- デジタル時計 -->
-            <div class="bg-gradient-to-br from-yellow-300 to-yellow-400 rounded-[2rem] shadow-xl p-8 flex flex-col items-center justify-center text-white border-b-8 border-yellow-500/30">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-80"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <div id="digital-clock" class="text-7xl font-black mb-1 drop-shadow-lg tracking-tight">00:00</div>
-                <div id="digital-seconds" class="text-2xl font-bold opacity-90">00</div>
-            </div>
-
-            <!-- 出発カウントダウン -->
-            <div class="bg-white rounded-[2rem] shadow-xl p-8 flex-1 flex flex-col items-center justify-center border-t-[12px] border-orange-400 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </div>
-                
-                <div class="text-orange-500 font-black text-2xl mb-6 flex items-center gap-3">
-                    <span>しゅっぱつまで</span>
-                </div>
-                
-                <div id="countdown-timer" class="text-4xl font-black text-gray-700 text-center leading-tight mb-8">
-                    あと -- 分 -- 秒
-                </div>
-                
-                <div class="w-full border-t border-gray-100 pt-8">
-                    <label class="block text-center text-xs font-black text-gray-400 uppercase tracking-widest mb-3">しゅっぱつ の じかん</label>
-                    <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- 設定メッセージボックス (alertの代わり) -->
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full font-bold shadow-2xl transition-all opacity-0 pointer-events-none transform translate-y-4">
+    <!-- 設定メッセージボックス -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full font-bold shadow-2xl transition-all opacity-0 pointer-events-none transform translate-y-4 z-50">
         メッセージ
     </div>
 
@@ -153,36 +151,27 @@
         let departureTime = "08:00";
         let isSettingsMode = false;
 
-        // 初期化
         window.onload = () => {
             renderTasks();
             startClock();
-            
-            // Enterキーでタスク追加
             document.getElementById('new-task-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') addTask();
             });
         };
 
-        // 時計更新ループ
         function startClock() {
             setInterval(() => {
                 const now = new Date();
-                
-                // デジタル時計
                 const h = String(now.getHours()).padStart(2, '0');
                 const m = String(now.getMinutes()).padStart(2, '0');
                 const s = String(now.getSeconds()).padStart(2, '0');
                 
                 document.getElementById('digital-clock').textContent = `${h}:${m}`;
                 document.getElementById('digital-seconds').textContent = s;
-
-                // カウントダウン
                 updateCountdown(now);
             }, 1000);
         }
 
-        // カウントダウン計算
         function updateCountdown(now) {
             const [depH, depM] = departureTime.split(':').map(Number);
             const target = new Date();
@@ -196,23 +185,22 @@
             } else {
                 const diffMins = Math.floor(diff / 60000);
                 const diffSecs = Math.floor((diff % 60000) / 1000);
-                timerElement.innerHTML = `あと <span class="text-blue-600 text-5xl">${diffMins}</span> 分 <br> <span class="text-2xl">${diffSecs} 秒</span>`;
+                timerElement.innerHTML = `あと <span class="text-blue-600 text-2xl lg:text-5xl">${diffMins}</span> 分 <span class="text-lg lg:text-2xl">${diffSecs} 秒</span>`;
             }
         }
 
-        // タスク描画
         function renderTasks() {
             const grid = document.getElementById('task-grid');
             grid.innerHTML = '';
 
             tasks.forEach(task => {
                 const card = document.createElement('div');
-                card.className = 'card-container h-40';
+                card.className = 'card-container h-28 lg:h-40';
                 
                 card.innerHTML = `
                     <div class="card-inner ${task.completed ? 'is-flipped' : ''}" onclick="toggleTask(${task.id})">
                         <div class="card-front bg-white border-blue-200 hover:border-blue-400 text-blue-700">
-                            <span class="text-2xl font-black">${task.text}</span>
+                            <span class="text-lg lg:text-2xl font-black">${task.text}</span>
                             ${isSettingsMode ? `
                                 <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -220,28 +208,24 @@
                             ` : ''}
                         </div>
                         <div class="card-back bg-green-100 border-green-400 text-green-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="mb-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            <span class="text-xl font-black">できた！</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="mb-1 lg:mb-2 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span class="text-sm lg:text-xl font-black">できた！</span>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-
             updateProgress();
         }
 
-        // 進捗更新
         function updateProgress() {
             const completed = tasks.filter(t => t.completed).length;
             const total = tasks.length;
             const percent = total > 0 ? (completed / total) * 100 : 0;
-
             document.getElementById('progress-bar').style.width = `${percent}%`;
             document.getElementById('progress-text').textContent = `${completed} / ${total}`;
         }
 
-        // タスク切り替え
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
             if (task) {
@@ -250,7 +234,6 @@
             }
         }
 
-        // タスク追加
         function addTask() {
             const input = document.getElementById('new-task-input');
             const text = input.value.trim();
@@ -262,39 +245,33 @@
             }
         }
 
-        // タスク削除
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
             renderTasks();
             showToast("タスクを けしたよ。");
         }
 
-        // 全リセット
         function resetAll() {
             tasks = tasks.map(t => ({ ...t, completed: false }));
             renderTasks();
             showToast("はじめから やりなおそう！");
         }
 
-        // 出発時間更新
         function updateDepartureTime() {
             departureTime = document.getElementById('departure-input').value;
             showToast(`しゅっぱつ時間を ${departureTime} にしたよ`);
         }
 
-        // 設定モード切り替え
         function toggleSettings() {
             isSettingsMode = !isSettingsMode;
             renderTasks();
-            showToast(isSettingsMode ? "へんしゅうモード：タスクをけせるよ" : "じゅんびモード：タップで「できた！」");
+            showToast(isSettingsMode ? "へんしゅうモード" : "じゅんびモード");
         }
 
-        // トースト通知表示
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-            
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
             }, 2500);
