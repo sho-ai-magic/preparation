@@ -17,6 +17,8 @@
             perspective: 1000px;
             width: 100%;
             height: 100%;
+            user-select: none;
+            touch-action: none; /* ドラッグ操作の干渉を防ぐ */
         }
 
         .card-inner {
@@ -48,6 +50,12 @@
 
         .card-back {
             transform: rotateY(180deg);
+        }
+
+        /* ドラッグ中のスタイル */
+        .dragging {
+            opacity: 0.4;
+            scale: 0.95;
         }
 
         /* 紙吹雪のアニメーション */
@@ -152,7 +160,7 @@
 
     </div>
 
-    <!-- お祝いオーバーレイ (桜色に変更) -->
+    <!-- お祝いオーバーレイ -->
     <div id="celebration-overlay" class="fixed inset-0 z-[100] bg-[#fff0f3]/95 hidden flex flex-col items-center justify-center text-rose-600 p-6 text-center overflow-hidden">
         <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
         <div id="celebration-content" class="relative z-10 flex flex-col items-center">
@@ -203,7 +211,8 @@
         let isSettingsMode = false;
         let lastDateString = new Date().toDateString(); 
         let alarmConfig = { 30: true, 20: true, 10: true, 5: true, 0: true };
-        let lastAlarmTriggered = ""; // HH:mm:point
+        let lastAlarmTriggered = ""; 
+        let draggedItemIndex = null; // 並び替え用
 
         window.onload = () => {
             loadFromStorage();
@@ -334,22 +343,56 @@
             const rows = Math.ceil(tasks.length / cols);
             grid.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
 
-            tasks.forEach(task => {
+            tasks.forEach((task, index) => {
                 const card = document.createElement('div');
                 card.className = 'card-container';
+                card.setAttribute('draggable', 'true');
+                
+                // ドラッグ開始
+                card.ondragstart = (e) => {
+                    draggedItemIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(() => card.classList.add('dragging'), 0);
+                };
+
+                // ドラッグ中（他の要素の上）
+                card.ondragover = (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                };
+
+                // ドロップ処理
+                card.ondrop = (e) => {
+                    e.preventDefault();
+                    if (draggedItemIndex === null || draggedItemIndex === index) return;
+                    
+                    // 配列の中身を入れ替え
+                    const movedItem = tasks.splice(draggedItemIndex, 1)[0];
+                    tasks.splice(index, 0, movedItem);
+                    
+                    saveToStorage();
+                    renderTasks();
+                };
+
+                // ドラッグ終了
+                card.ondragend = () => {
+                    card.classList.remove('dragging');
+                    draggedItemIndex = null;
+                };
+
                 card.innerHTML = `
                     <div class="card-inner ${task.completed ? 'is-flipped' : ''}" onclick="toggleTask(${task.id})">
                         <div class="card-front bg-white border-blue-200 hover:border-blue-400 text-blue-700">
-                            <span class="text-base lg:text-xl xl:text-2xl font-black px-2 text-center">${task.text}</span>
+                            <span class="text-base lg:text-xl xl:text-2xl font-black px-2 text-center pointer-events-none">${task.text}</span>
                             ${isSettingsMode ? `
-                                <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 z-10">
+                                <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 z-10 pointer-events-auto">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 </button>
                             ` : ''}
                         </div>
                         <div class="card-back bg-green-100 border-green-400 text-green-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="mb-1 text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            <span class="text-xs lg:text-lg font-black">できた！</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="mb-1 text-green-500 pointer-events-none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span class="text-xs lg:text-lg font-black pointer-events-none">できた！</span>
                         </div>
                     </div>
                 `;
