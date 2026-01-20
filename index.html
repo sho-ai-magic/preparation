@@ -212,7 +212,8 @@
         let lastDateString = new Date().toDateString(); 
         let alarmConfig = { 30: true, 20: true, 10: true, 5: true, 0: true };
         let lastAlarmTriggered = ""; 
-        let draggedItemIndex = null; // 並び替え用
+        let draggedItemIndex = null;
+        let celebrationShownToday = false; // 重複表示防止用
 
         window.onload = () => {
             loadFromStorage();
@@ -231,7 +232,8 @@
                 tasks: tasks,
                 departureTime: departureTime,
                 saveDate: new Date().toDateString(),
-                alarmConfig: alarmConfig
+                alarmConfig: alarmConfig,
+                celebrationShownToday: celebrationShownToday
             };
             localStorage.setItem('morning_routine_data', JSON.stringify(data));
         }
@@ -245,8 +247,10 @@
                     const parsed = JSON.parse(savedData);
                     if (parsed.saveDate !== today) {
                         tasks = (parsed.tasks || DEFAULT_TASKS).map(t => ({ ...t, completed: false }));
+                        celebrationShownToday = false;
                     } else {
                         tasks = parsed.tasks || DEFAULT_TASKS;
+                        celebrationShownToday = parsed.celebrationShownToday || false;
                     }
                     departureTime = parsed.departureTime || "08:00";
                     alarmConfig = parsed.alarmConfig || alarmConfig;
@@ -266,6 +270,7 @@
                 
                 if (nowDateString !== lastDateString) {
                     lastDateString = nowDateString;
+                    celebrationShownToday = false; // 新しい日にリセット
                     resetAll();
                     showToast("あたらしに日になったよ！リセットしたよ。");
                 }
@@ -348,33 +353,26 @@
                 card.className = 'card-container';
                 card.setAttribute('draggable', 'true');
                 
-                // ドラッグ開始
                 card.ondragstart = (e) => {
                     draggedItemIndex = index;
                     e.dataTransfer.effectAllowed = 'move';
                     setTimeout(() => card.classList.add('dragging'), 0);
                 };
 
-                // ドラッグ中（他の要素の上）
                 card.ondragover = (e) => {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
                 };
 
-                // ドロップ処理
                 card.ondrop = (e) => {
                     e.preventDefault();
                     if (draggedItemIndex === null || draggedItemIndex === index) return;
-                    
-                    // 配列の中身を入れ替え
                     const movedItem = tasks.splice(draggedItemIndex, 1)[0];
                     tasks.splice(index, 0, movedItem);
-                    
                     saveToStorage();
                     renderTasks();
                 };
 
-                // ドラッグ終了
                 card.ondragend = () => {
                     card.classList.remove('dragging');
                     draggedItemIndex = null;
@@ -433,7 +431,10 @@
             document.getElementById('progress-bar').style.width = `${percent}%`;
             document.getElementById('progress-text').textContent = `${completed} / ${total}`;
 
-            if (total > 0 && completed === total && !isSettingsMode) {
+            // 全完了チェック (まだ今日一度も表示されていない場合のみ表示)
+            if (total > 0 && completed === total && !isSettingsMode && !celebrationShownToday) {
+                celebrationShownToday = true;
+                saveToStorage();
                 setTimeout(showCelebration, 600);
             }
         }
@@ -459,13 +460,15 @@
 
         function closeCelebration() {
             document.getElementById('celebration-overlay').classList.add('hidden');
-            resetAll(); 
+            // resetAll() は呼び出さない (「できた！」の状態を維持)
         }
 
         function toggleTask(id) {
             const task = tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
+                // 全完了から一つ戻した場合は、再度お祝いが出るようにフラグを戻す
+                if (!task.completed) celebrationShownToday = false;
                 renderTasks();
                 saveToStorage();
             }
@@ -476,6 +479,7 @@
             const text = input.value.trim();
             if (text) {
                 tasks.push({ id: Date.now(), text, completed: false });
+                celebrationShownToday = false;
                 input.value = '';
                 renderTasks();
                 saveToStorage();
