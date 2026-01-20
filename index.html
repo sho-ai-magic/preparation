@@ -49,6 +49,28 @@
         .card-back {
             transform: rotateY(180deg);
         }
+
+        /* 紙吹雪のアニメーション */
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti 3s ease-out forwards;
+        }
+
+        /* アラームのパルスアニメーション */
+        @keyframes pulse-orange {
+            0%, 100% { background-color: #f97316; }
+            50% { background-color: #ea580c; }
+        }
+        .animate-pulse-orange {
+            animation: pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
     </style>
 </head>
 <body class="bg-blue-50 h-[100dvh] w-screen p-4 lg:p-6">
@@ -64,21 +86,29 @@
                 <div id="digital-seconds" class="text-lg lg:text-2xl font-bold opacity-90">00</div>
             </div>
 
-            <!-- 出発カウントダウン -->
-            <div class="flex-1 lg:flex-1 bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-xl p-4 lg:p-8 flex flex-col items-center justify-center border-t-8 lg:border-t-[12px] border-orange-400 relative overflow-hidden">
-                <div class="text-orange-500 font-black text-sm lg:text-2xl mb-2 lg:mb-4 flex items-center gap-2">
-                    <span>しゅっぱつまで</span>
-                </div>
+            <!-- 出発カウントダウン / アラーム設定表示 -->
+            <div id="countdown-card" class="flex-1 lg:flex-1 bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-xl p-4 lg:p-6 flex flex-col items-center justify-center border-t-8 lg:border-t-[12px] border-orange-400 relative overflow-hidden">
                 
-                <!-- whitespace-nowrapを追加して折り返しを防止 -->
-                <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6 whitespace-nowrap">
-                    あと -- 分 -- 秒
+                <!-- 通常時：カウントダウン表示 -->
+                <div id="normal-view" class="w-full flex flex-col items-center">
+                    <div class="text-orange-500 font-black text-sm lg:text-2xl mb-2 lg:mb-4 flex items-center gap-2">
+                        <span>しゅっぱつまで</span>
+                    </div>
+                    <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6 whitespace-nowrap">
+                        あと -- 分 -- 秒
+                    </div>
+                    <div class="w-full border-t border-gray-100 pt-2 lg:pt-6">
+                        <label class="block text-center text-[10px] lg:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 lg:mb-2">じかん</label>
+                        <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full max-w-[160px] lg:max-w-[200px] mx-auto block p-2 lg:p-4 bg-gray-50 border-2 border-gray-100 rounded-xl lg:rounded-2xl text-xl lg:text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
+                    </div>
                 </div>
-                
-                <div class="w-full border-t border-gray-100 pt-2 lg:pt-6">
-                    <label class="block text-center text-[10px] lg:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 lg:mb-2">じかん</label>
-                    <!-- max-wとmx-autoで幅を制限し、中央に配置 -->
-                    <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full max-w-[160px] lg:max-w-[200px] mx-auto block p-2 lg:p-4 bg-gray-50 border-2 border-gray-100 rounded-xl lg:rounded-2xl text-xl lg:text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
+
+                <!-- 設定モード時：アラーム設定 -->
+                <div id="settings-view" class="w-full hidden h-full overflow-y-auto">
+                    <h3 class="text-center font-black text-orange-500 mb-4">🔔 アラームせってい</h3>
+                    <div id="alarm-list" class="space-y-2">
+                        <!-- JSで生成 -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,7 +125,7 @@
                         <span id="progress-text" class="font-bold text-sm lg:text-xl text-gray-500">0 / 0</span>
                     </div>
                 </div>
-                <button onclick="toggleSettings()" class="p-2 lg:p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                <button onclick="toggleSettings()" id="settings-btn" class="p-2 lg:p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
             </div>
@@ -122,12 +152,43 @@
 
     </div>
 
+    <!-- お祝いオーバーレイ (桜色に変更) -->
+    <div id="celebration-overlay" class="fixed inset-0 z-[100] bg-[#fff0f3]/95 hidden flex flex-col items-center justify-center text-rose-600 p-6 text-center overflow-hidden">
+        <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
+        <div id="celebration-content" class="relative z-10 flex flex-col items-center">
+            <div class="bg-white rounded-full p-6 mb-6 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <h2 class="text-4xl lg:text-6xl font-black mb-4">じゅんび かんりょう！</h2>
+            <p class="text-xl lg:text-2xl font-bold opacity-90 mb-8">
+                すごい！ぜんぶ できたね！<br>
+                しゅっぱつのじかんまで、<br>
+                ゆっくり すごしてね。
+            </p>
+            <button onclick="closeCelebration()" class="bg-rose-500 text-white px-12 py-4 rounded-full text-2xl font-black shadow-2xl hover:scale-105 active:scale-95 transition-transform">
+                はーい！
+            </button>
+        </div>
+    </div>
+
+    <!-- アラームオーバーレイ -->
+    <div id="alarm-overlay" class="fixed inset-0 z-[110] animate-pulse-orange hidden flex flex-col items-center justify-center text-white p-10 text-center">
+        <div class="bg-white/20 rounded-full p-10 mb-8">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h2 id="alarm-title" class="text-6xl font-black mb-4">あと 10ふん！</h2>
+        <p id="alarm-desc" class="text-2xl font-bold mb-12 opacity-90">じゅんびを すすめよう！</p>
+        <button onclick="closeAlarm()" class="bg-white text-orange-600 px-16 py-6 rounded-full text-4xl font-black shadow-2xl hover:scale-105 active:scale-95 transition-transform">
+            わかった！
+        </button>
+    </div>
+
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full font-bold shadow-2xl transition-all opacity-0 pointer-events-none transform translate-y-4 z-50">
         メッセージ
     </div>
 
     <script>
-        let tasks = [
+        const DEFAULT_TASKS = [
             { id: 1, text: 'はみがき', completed: false },
             { id: 2, text: 'あさごはん', completed: false },
             { id: 3, text: 'トイレ', completed: false },
@@ -137,28 +198,118 @@
             { id: 7, text: 'かみのけ', completed: false }
         ];
 
+        let tasks = [];
         let departureTime = "08:00";
         let isSettingsMode = false;
+        let lastDateString = new Date().toDateString(); 
+        let alarmConfig = { 30: true, 20: true, 10: true, 5: true, 0: true };
+        let lastAlarmTriggered = ""; // HH:mm:point
 
         window.onload = () => {
+            loadFromStorage();
             renderTasks();
+            renderAlarmSettings();
             startClock();
+            
             document.getElementById('new-task-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') addTask();
             });
             window.addEventListener('resize', renderTasks);
         };
 
+        function saveToStorage() {
+            const data = {
+                tasks: tasks,
+                departureTime: departureTime,
+                saveDate: new Date().toDateString(),
+                alarmConfig: alarmConfig
+            };
+            localStorage.setItem('morning_routine_data', JSON.stringify(data));
+        }
+
+        function loadFromStorage() {
+            const savedData = localStorage.getItem('morning_routine_data');
+            const today = new Date().toDateString();
+
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed.saveDate !== today) {
+                        tasks = (parsed.tasks || DEFAULT_TASKS).map(t => ({ ...t, completed: false }));
+                    } else {
+                        tasks = parsed.tasks || DEFAULT_TASKS;
+                    }
+                    departureTime = parsed.departureTime || "08:00";
+                    alarmConfig = parsed.alarmConfig || alarmConfig;
+                    document.getElementById('departure-input').value = departureTime;
+                } catch (e) {
+                    tasks = DEFAULT_TASKS;
+                }
+            } else {
+                tasks = DEFAULT_TASKS;
+            }
+        }
+
         function startClock() {
             setInterval(() => {
                 const now = new Date();
+                const nowDateString = now.toDateString();
+                
+                if (nowDateString !== lastDateString) {
+                    lastDateString = nowDateString;
+                    resetAll();
+                    showToast("あたらしに日になったよ！リセットしたよ。");
+                }
+
                 const h = String(now.getHours()).padStart(2, '0');
                 const m = String(now.getMinutes()).padStart(2, '0');
                 const s = String(now.getSeconds()).padStart(2, '0');
                 document.getElementById('digital-clock').textContent = `${h}:${m}`;
                 document.getElementById('digital-seconds').textContent = s;
+                
                 updateCountdown(now);
+                checkAlarms(now);
             }, 1000);
+        }
+
+        function checkAlarms(now) {
+            const [depH, depM] = departureTime.split(':').map(Number);
+            const target = new Date(now);
+            target.setHours(depH, depM, 0, 0);
+
+            const diffMs = target - now;
+            const diffMins = Math.floor(diffMs / 60000);
+            const isAllDone = tasks.length > 0 && tasks.every(t => t.completed);
+
+            [30, 20, 10, 5, 0].forEach(point => {
+                if (diffMins === point && alarmConfig[point]) {
+                    const triggerId = `${now.getHours()}:${now.getMinutes()}:${point}`;
+                    if (lastAlarmTriggered === triggerId) return;
+                    if ([30, 20, 10].includes(point) && isAllDone) return;
+
+                    lastAlarmTriggered = triggerId;
+                    showAlarm(point);
+                }
+            });
+        }
+
+        function showAlarm(point) {
+            const overlay = document.getElementById('alarm-overlay');
+            const title = document.getElementById('alarm-title');
+            const desc = document.getElementById('alarm-desc');
+
+            if (point === 0) {
+                title.textContent = "しゅっぱつの じかん！";
+                desc.textContent = "わすれものはないかな？";
+            } else {
+                title.textContent = `あと ${point}ふん！`;
+                desc.textContent = "じゅんびを すすめよう！";
+            }
+            overlay.classList.remove('hidden');
+        }
+
+        function closeAlarm() {
+            document.getElementById('alarm-overlay').classList.add('hidden');
         }
 
         function updateCountdown(now) {
@@ -172,7 +323,6 @@
             } else {
                 const diffMins = Math.floor(diff / 60000);
                 const diffSecs = Math.floor((diff % 60000) / 1000);
-                // 秒数が折り返さないように構成
                 timerElement.innerHTML = `あと <span class="text-blue-600 text-2xl lg:text-5xl">${diffMins}</span> 分 <span class="text-lg lg:text-2xl">${diffSecs} 秒</span>`;
             }
         }
@@ -208,12 +358,65 @@
             updateProgress();
         }
 
+        function renderAlarmSettings() {
+            const list = document.getElementById('alarm-list');
+            list.innerHTML = '';
+            [30, 20, 10, 5, 0].forEach(p => {
+                const active = alarmConfig[p];
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2 rounded-xl border-2 transition-all cursor-pointer ${active ? 'bg-orange-50 border-orange-300' : 'bg-gray-50 border-transparent opacity-60'}`;
+                item.onclick = () => toggleAlarm(p);
+                item.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-black ${active ? 'text-orange-600' : 'text-gray-400'}">${p === 0 ? 'しゅっぱつ！' : p + 'ふんまえ'}</span>
+                        ${[30, 20, 10].includes(p) ? '<span class="text-[8px] text-gray-400 font-bold leading-none">※まだのときだけ</span>' : ''}
+                    </div>
+                    <div class="text-xl">${active ? '🔔' : '🔕'}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleAlarm(point) {
+            alarmConfig[point] = !alarmConfig[point];
+            renderAlarmSettings();
+            saveToStorage();
+        }
+
         function updateProgress() {
             const completed = tasks.filter(t => t.completed).length;
             const total = tasks.length;
             const percent = total > 0 ? (completed / total) * 100 : 0;
             document.getElementById('progress-bar').style.width = `${percent}%`;
             document.getElementById('progress-text').textContent = `${completed} / ${total}`;
+
+            if (total > 0 && completed === total && !isSettingsMode) {
+                setTimeout(showCelebration, 600);
+            }
+        }
+
+        function showCelebration() {
+            const overlay = document.getElementById('celebration-overlay');
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            
+            const colors = ['#f97316', '#fbbf24', '#4ade80', '#60a5fa', '#f472b6'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                container.appendChild(confetti);
+            }
+            overlay.classList.remove('hidden');
+        }
+
+        function closeCelebration() {
+            document.getElementById('celebration-overlay').classList.add('hidden');
+            resetAll(); 
         }
 
         function toggleTask(id) {
@@ -221,6 +424,7 @@
             if (task) {
                 task.completed = !task.completed;
                 renderTasks();
+                saveToStorage();
             }
         }
 
@@ -231,6 +435,7 @@
                 tasks.push({ id: Date.now(), text, completed: false });
                 input.value = '';
                 renderTasks();
+                saveToStorage();
                 showToast("ついかしたよ！");
             }
         }
@@ -238,24 +443,43 @@
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
             renderTasks();
+            saveToStorage();
             showToast("けしたよ。");
         }
 
         function resetAll() {
             tasks = tasks.map(t => ({ ...t, completed: false }));
             renderTasks();
-            showToast("やりなおそう！");
+            saveToStorage();
         }
 
         function updateDepartureTime() {
             departureTime = document.getElementById('departure-input').value;
+            saveToStorage();
             showToast(`しゅっぱつは ${departureTime}`);
         }
 
         function toggleSettings() {
             isSettingsMode = !isSettingsMode;
+            const normalView = document.getElementById('normal-view');
+            const settingsView = document.getElementById('settings-view');
+            const btn = document.getElementById('settings-btn');
+            const card = document.getElementById('countdown-card');
+
+            if (isSettingsMode) {
+                normalView.classList.add('hidden');
+                settingsView.classList.remove('hidden');
+                btn.classList.replace('bg-gray-100', 'bg-blue-600');
+                btn.querySelector('svg').classList.replace('text-gray-500', 'text-white');
+                card.classList.replace('border-orange-400', 'border-blue-400');
+            } else {
+                normalView.classList.remove('hidden');
+                settingsView.classList.add('hidden');
+                btn.classList.replace('bg-blue-600', 'bg-gray-100');
+                btn.querySelector('svg').classList.replace('text-white', 'text-gray-500');
+                card.classList.replace('border-blue-400', 'border-orange-400');
+            }
             renderTasks();
-            showToast(isSettingsMode ? "へんしゅうモード" : "じゅんびモード");
         }
 
         function showToast(msg) {
