@@ -103,7 +103,7 @@
                         <span>しゅっぱつまで</span>
                     </div>
                     <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6 whitespace-nowrap">
-                        あと -- 分 -- 秒
+                        あと -- 時間 -- 分 -- 秒
                     </div>
                     <div class="w-full border-t border-gray-100 pt-2 lg:pt-6">
                         <label class="block text-center text-[10px] lg:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 lg:mb-2">じかん</label>
@@ -291,6 +291,11 @@
             const target = new Date(now);
             target.setHours(depH, depM, 0, 0);
 
+            // すでに出発時間を過ぎている場合は翌日の同時刻として計算
+            if (target < now) {
+                target.setDate(target.getDate() + 1);
+            }
+
             const diffMs = target - now;
             const diffMins = Math.floor(diffMs / 60000);
             const isAllDone = tasks.length > 0 && tasks.every(t => t.completed);
@@ -328,16 +333,33 @@
 
         function updateCountdown(now) {
             const [depH, depM] = departureTime.split(':').map(Number);
-            const target = new Date();
+            const target = new Date(now);
             target.setHours(depH, depM, 0, 0);
+
+            // 日付をまたぐ場合（例：現在23時、出発8時）の調整
+            if (target < now) {
+                target.setDate(target.getDate() + 1);
+            }
+
             let diff = target - now;
             const timerElement = document.getElementById('countdown-timer');
+            
+            // 出発まで1分未満で現在時刻とほぼ同じ場合（マージン）
             if (diff <= 0) {
                 timerElement.innerHTML = `<span class="text-red-500 animate-bounce block">しゅっぱつの<br>じかんだよ！</span>`;
             } else {
-                const diffMins = Math.floor(diff / 60000);
-                const diffSecs = Math.floor((diff % 60000) / 1000);
-                timerElement.innerHTML = `あと <span class="text-blue-600 text-2xl lg:text-5xl">${diffMins}</span> 分 <span class="text-lg lg:text-2xl">${diffSecs} 秒</span>`;
+                const totalSecs = Math.floor(diff / 1000);
+                const h = Math.floor(totalSecs / 3600);
+                const m = Math.floor((totalSecs % 3600) / 60);
+                const s = totalSecs % 60;
+
+                let timeHtml = 'あと ';
+                if (h > 0) {
+                    timeHtml += `<span class="text-blue-600 text-2xl lg:text-4xl">${h}</span> 時間 `;
+                }
+                timeHtml += `<span class="text-blue-600 text-2xl lg:text-4xl">${m}</span> 分 <span class="text-lg lg:text-2xl">${s} 秒</span>`;
+                
+                timerElement.innerHTML = timeHtml;
             }
         }
 
