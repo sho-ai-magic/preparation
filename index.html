@@ -70,13 +70,15 @@
                     <span>しゅっぱつまで</span>
                 </div>
                 
-                <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6">
+                <!-- whitespace-nowrapを追加して折り返しを防止 -->
+                <div id="countdown-timer" class="text-xl lg:text-4xl font-black text-gray-700 text-center leading-tight mb-2 lg:mb-6 whitespace-nowrap">
                     あと -- 分 -- 秒
                 </div>
                 
                 <div class="w-full border-t border-gray-100 pt-2 lg:pt-6">
                     <label class="block text-center text-[10px] lg:text-xs font-black text-gray-400 uppercase tracking-widest mb-1 lg:mb-2">じかん</label>
-                    <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full p-2 lg:p-4 bg-gray-50 border-2 border-gray-100 rounded-xl lg:rounded-2xl text-xl lg:text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
+                    <!-- max-wとmx-autoで幅を制限し、中央に配置 -->
+                    <input type="time" id="departure-input" value="08:00" onchange="updateDepartureTime()" class="w-full max-w-[160px] lg:max-w-[200px] mx-auto block p-2 lg:p-4 bg-gray-50 border-2 border-gray-100 rounded-xl lg:rounded-2xl text-xl lg:text-4xl font-black text-center text-blue-600 focus:border-blue-400 focus:bg-white outline-none transition-all">
                 </div>
             </div>
         </div>
@@ -98,7 +100,7 @@
                 </button>
             </div>
 
-            <!-- タスクグリッド (高さを自動で分配するように設定) -->
+            <!-- タスクグリッド -->
             <div id="task-grid" class="flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 lg:gap-6 pb-2 overflow-hidden">
                 <!-- JavaScriptで生成 -->
             </div>
@@ -170,6 +172,7 @@
             } else {
                 const diffMins = Math.floor(diff / 60000);
                 const diffSecs = Math.floor((diff % 60000) / 1000);
+                // 秒数が折り返さないように構成
                 timerElement.innerHTML = `あと <span class="text-blue-600 text-2xl lg:text-5xl">${diffMins}</span> 分 <span class="text-lg lg:text-2xl">${diffSecs} 秒</span>`;
             }
         }
@@ -177,18 +180,13 @@
         function renderTasks() {
             const grid = document.getElementById('task-grid');
             grid.innerHTML = '';
-
-            // 列数の判定 (Tailwindのブレイクポイントに合わせる)
             const cols = window.innerWidth >= 640 ? 3 : 2;
             const rows = Math.ceil(tasks.length / cols);
-            
-            // グリッドの高さを自動分配するように設定
             grid.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
 
             tasks.forEach(task => {
                 const card = document.createElement('div');
                 card.className = 'card-container';
-                
                 card.innerHTML = `
                     <div class="card-inner ${task.completed ? 'is-flipped' : ''}" onclick="toggleTask(${task.id})">
                         <div class="card-front bg-white border-blue-200 hover:border-blue-400 text-blue-700">
