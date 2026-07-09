@@ -344,7 +344,7 @@
         let isDeleteMode = false;
         let lastDateString = new Date().toDateString(); 
         let alarmConfig = { 30: true, 20: true, 10: true, 5: true, 0: true };
-        let lastAlarmTriggered = ""; 
+        let triggeredAlarmPoints = new Set();
         let draggedItemIndex = null;
         let celebrationShownToday = false; 
         let enabledDays = [false, true, true, true, true, true, false]; 
@@ -354,7 +354,13 @@
         let theme = 'blue';
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.addEventListener('click', () => audioCtx.resume(), { once: true });
+        document.addEventListener('touchstart', () => audioCtx.resume(), { once: true });
         
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
         function safeUpdate(id, text) {
             const el = document.getElementById(id);
             if (el) el.textContent = text;
@@ -436,7 +442,7 @@
                 try {
                     const parsed = JSON.parse(savedData);
                     const today = new Date().toDateString();
-                    if (parsed.saveDate !== today) { tasks = (parsed.tasks || DEFAULT_TASKS).map(t => ({ ...t, completed: false })); celebrationShownToday = false; } 
+                    if (parsed.saveDate !== today) { tasks = (parsed.tasks || DEFAULT_TASKS).map(task => ({ ...task, completed: false })); celebrationShownToday = false; }
                     else { tasks = parsed.tasks || DEFAULT_TASKS; celebrationShownToday = parsed.celebrationShownToday || false; }
                     departureTime = parsed.departureTime || "08:00"; alarmConfig = parsed.alarmConfig || alarmConfig; enabledDays = parsed.enabledDays || enabledDays; stamps = parsed.stamps || stamps; perfectWeekCount = parsed.perfectWeekCount || 0; useKanji = parsed.useKanji || false; theme = parsed.theme || 'blue';
                     safeUpdate('perfect-count', perfectWeekCount);
@@ -452,7 +458,7 @@
 
         function startClock() {
             setInterval(() => {
-                const now = new Date(); if (now.toDateString() !== lastDateString) { if (now.getDay() === 1) { stamps = stamps.map(() => false); } lastDateString = now.toDateString(); celebrationShownToday = false; resetAll(); }
+                const now = new Date(); if (now.toDateString() !== lastDateString) { if (now.getDay() === 1) { stamps = stamps.map(() => false); } lastDateString = now.toDateString(); celebrationShownToday = false; triggeredAlarmPoints.clear(); resetAll(); }
                 document.getElementById('digital-clock').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                 document.getElementById('digital-seconds').textContent = String(now.getSeconds()).padStart(2, '0');
                 updateCountdown(now); checkAlarms(now);
@@ -461,8 +467,12 @@
 
         function checkAlarms(now) {
             const [depH, depM] = departureTime.split(':').map(Number); const target = new Date(now); target.setHours(depH, depM, 0, 0); if (target < now) target.setDate(target.getDate() + 1);
-            const diffMins = Math.floor((target - now) / 60000); const isAllDone = tasks.length > 0 && tasks.every(t => t.completed);
-            [30, 20, 10, 5, 0].forEach(point => { if (diffMins === point && alarmConfig[point]) { const triggerId = `${now.getHours()}:${now.getMinutes()}:${point}`; if (lastAlarmTriggered === triggerId) return; if ([30, 20, 10].includes(point) && isAllDone) return; lastAlarmTriggered = triggerId; showAlarm(point); } });
+            const diffMins = Math.floor((target - now) / 60000); const isAllDone = tasks.length > 0 && tasks.every(task => task.completed);
+            const duePoint = [30, 20, 10, 5, 0].find(point => alarmConfig[point] && diffMins <= point && !triggeredAlarmPoints.has(point));
+            if (duePoint === undefined) return;
+            triggeredAlarmPoints.add(duePoint);
+            if ([30, 20, 10].includes(duePoint) && isAllDone) return;
+            showAlarm(duePoint);
         }
 
         function showAlarm(point) {
@@ -481,7 +491,7 @@
                 timerElement.innerHTML = `<span class="text-red-500 animate-bounce">${t('alarm_time')}</span>`; 
             } 
             else {
-                const totalSecs = Math.floor(diff / 1000); const h = Math.floor(totalSecs / 3600); const m = Math.ceil((totalSecs % 3600) / 60); 
+                const totalMins = Math.ceil(diff / 60000); const h = Math.floor(totalMins / 60); const m = totalMins % 60;
                 let html = `<span class="text-[0.6em] mr-1 lg:mr-2 opacity-50 font-black uppercase tracking-widest leading-none">あと</span>`;
                 if (h > 0) html += `<span class="${THEMES[theme].text}">${h}</span><span class="text-[0.5em] mx-0.5 lg:mx-1 font-black leading-none">${useKanji ? '時間':'じかん'}</span>`;
                 html += `<span class="${THEMES[theme].text}">${m}</span><span class="text-[0.5em] mx-0.5 lg:mx-1 font-black leading-none">${useKanji ? '分':'ふん'}</span>`;
@@ -540,7 +550,7 @@
                 card.innerHTML = `
                     <div class="card-inner ${!isDeleteMode && task.completed ? 'is-flipped' : ''} ${isDeleteMode ? 'cursor-default shake-card' : ''}" onclick="${isDeleteMode ? '' : `toggleTask(${task.id})`}">
                         <div class="card-front bg-white ${config.border.replace('100','200')} ${config.text} border-2 transition-all relative">
-                            <span class="${fontSizeClass} font-black px-1 text-center pointer-events-none break-all card-text-main leading-tight">${taskT(task.text)}</span>
+                            <span class="${fontSizeClass} font-black px-1 text-center pointer-events-none break-all card-text-main leading-tight">${escapeHtml(taskT(task.text))}</span>
                             ${isDeleteMode ? `
                                 <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg z-20 hover:bg-red-600 transition-transform hover:scale-110 active:scale-95">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -611,7 +621,7 @@
         }
 
         function updateProgress() {
-            const completed = tasks.filter(t => t.completed).length; const total = tasks.length; const percent = total > 0 ? (completed / total) * 100 : 0;
+            const completed = tasks.filter(task => task.completed).length; const total = tasks.length; const percent = total > 0 ? (completed / total) * 100 : 0;
             const bar = document.getElementById('progress-bar'); if(bar) bar.style.width = `${percent}%`; 
             safeUpdate('progress-text', `${completed} / ${total}`);
             if (total > 0 && completed === total && !isSettingsMode && !celebrationShownToday && !isDeleteMode) { celebrationShownToday = true; handleCompletion(); }
@@ -651,22 +661,25 @@
             overlay?.classList.remove('hidden');
         }
 
-        function closeCelebration() { document.getElementById('celebration-overlay')?.classList.add('hidden'); }
+        function closeCelebration() { document.getElementById('celebration-overlay')?.classList.add('hidden'); window.speechSynthesis.cancel(); }
         function toggleTask(id) { 
             // 編集モード中は反応させない
             if (isDeleteMode) return;
-            const task = tasks.find(t => t.id === id); 
+            const task = tasks.find(item => item.id === id);
             if (task) { task.completed = !task.completed; if (!task.completed) celebrationShownToday = false; audioCtx.resume(); playBeep(task.completed ? 1100 : 440, 0.05); renderTasks(); saveToStorage(); } 
         }
         function addTask() { const input = document.getElementById('new-task-input'); const text = input?.value.trim(); if (text) { tasks.push({ id: Date.now(), text, completed: false }); celebrationShownToday = false; if(input) input.value = ''; renderTasks(); saveToStorage(); } }
-        function deleteTask(id) { 
-            tasks = tasks.filter(t => t.id !== id); 
-            renderTasks(); 
-            saveToStorage(); 
+        function deleteTask(id) {
+            const target = tasks.find(task => task.id === id);
+            const name = target ? taskT(target.text) : '';
+            if (!window.confirm(`${t('delete_confirm')}\n"${name}"${t('delete_desc')}`)) return;
+            tasks = tasks.filter(task => task.id !== id);
+            renderTasks();
+            saveToStorage();
             showToast(useKanji ? "削除しました" : "けしたよ！");
         }
-        function resetAll() { tasks = tasks.map(t => ({ ...t, completed: false })); renderTasks(); saveToStorage(); }
-        function updateDepartureTime() { departureTime = document.getElementById('departure-input')?.value || departureTime; saveToStorage(); }
+        function resetAll() { tasks = tasks.map(task => ({ ...task, completed: false })); renderTasks(); saveToStorage(); }
+        function updateDepartureTime() { departureTime = document.getElementById('departure-input')?.value || departureTime; triggeredAlarmPoints.clear(); saveToStorage(); }
         
         function toggleSettings() {
             isSettingsMode = !isSettingsMode;
@@ -683,7 +696,7 @@
             renderTasks();
         }
 
-        function showToast(msg) { const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none'); setTimeout(() => t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none'), 3000); }
+        function showToast(msg) { const toastEl = document.getElementById('toast'); if(!toastEl) return; toastEl.textContent = msg; toastEl.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none'); setTimeout(() => toastEl.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none'), 3000); }
     </script>
 </body>
 </html>
