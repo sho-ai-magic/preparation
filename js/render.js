@@ -62,9 +62,8 @@ function updateCountdown(now) {
     }
 }
 
-function renderTasks() {
-    const grid = document.getElementById('task-grid'); grid.innerHTML = '';
-    const config = THEMES[theme];
+// グリッドの列数・行数・文字サイズを画面サイズに応じて適用し、カード用の文字サイズクラスを返す
+function applyGridLayout(grid) {
     const rows = Math.ceil(tasks.length / 3);
 
     // PC/タブレットは1画面に収めるため等割、スマホは縦に伸ばして均等割
@@ -91,42 +90,59 @@ function renderTasks() {
         if (tasks.length > 9) fontSizeClass = 'text-[9px]';
         else fontSizeClass = 'text-[10px]';
     }
+    return fontSizeClass;
+}
+
+// 整理モード時のドラッグ＆ドロップ／タッチ並び替えのイベントを1枚のカードに登録する
+function attachDragHandlers(card, index) {
+    card.setAttribute('draggable', 'true');
+    card.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); draggedItemIndex = index; };
+    card.ondragover = (e) => e.preventDefault();
+    card.ondrop = (e) => { e.preventDefault(); const targetCard = e.currentTarget; const targetIndex = parseInt(targetCard.getAttribute('data-index')); if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) { const item = tasks.splice(draggedItemIndex, 1)[0]; tasks.splice(targetIndex, 0, item); saveToStorage(); renderTasks(); } };
+    card.ondragend = (e) => { e.currentTarget.classList.remove('dragging'); draggedItemIndex = null; };
+
+    card.addEventListener('touchstart', (e) => { draggedItemIndex = index; e.currentTarget.classList.add('dragging'); }, {passive: true});
+    card.addEventListener('touchend', (e) => {
+        e.currentTarget.classList.remove('dragging'); const touch = e.changedTouches[0]; const targetEl = document.elementFromPoint(touch.clientX, touch.clientY); const targetCard = targetEl?.closest('.card-container');
+        if (targetCard && draggedItemIndex !== null) { const targetIndex = parseInt(targetCard.getAttribute('data-index')); if (targetIndex !== draggedItemIndex && !isNaN(targetIndex)) { const item = tasks.splice(draggedItemIndex, 1)[0]; tasks.splice(targetIndex, 0, item); saveToStorage(); renderTasks(); } } draggedItemIndex = null;
+    });
+}
+
+// タスク1枚分のカード要素を生成して返す（整理モード時はドラッグ登録も行う）
+function createTaskCard(task, index, config, fontSizeClass) {
+    const card = document.createElement('div'); card.className = `card-container ${isDeleteMode ? 'sortable' : ''}`; card.setAttribute('data-id', task.id);
+    card.setAttribute('data-index', index);
+
+    if (isDeleteMode) {
+        attachDragHandlers(card, index);
+    }
+
+    card.innerHTML = `
+        <div class="card-inner ${!isDeleteMode && task.completed ? 'is-flipped' : ''} ${isDeleteMode ? 'cursor-default shake-card' : ''}" onclick="${isDeleteMode ? '' : `toggleTask(${task.id})`}">
+            <div class="card-front bg-white ${config.border.replace('100','200')} ${config.text} border-2 transition-all relative">
+                <span class="${fontSizeClass} font-black px-1 text-center pointer-events-none break-all card-text-main leading-tight">${escapeHtml(taskT(task.text))}</span>
+                ${isDeleteMode ? `
+                    <button onclick="event.stopPropagation(); deleteTask(${task.id})" aria-label="このタスクをけす" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg z-20 hover:bg-red-600 transition-transform hover:scale-110 active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                ` : ''}
+            </div>
+            <div class="card-back bg-green-50 border-green-400 text-green-700 border-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" class="lg:w-8 lg:h-8 card-icon text-green-500 mb-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span class="text-[8px] lg:text-base font-black card-text-sub">${t('done')}</span>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function renderTasks() {
+    const grid = document.getElementById('task-grid'); grid.innerHTML = '';
+    const config = THEMES[theme];
+    const fontSizeClass = applyGridLayout(grid);
 
     tasks.forEach((task, index) => {
-        const card = document.createElement('div'); card.className = `card-container ${isDeleteMode ? 'sortable' : ''}`; card.setAttribute('data-id', task.id);
-        card.setAttribute('data-index', index);
-
-        if (isDeleteMode) {
-            card.setAttribute('draggable', 'true');
-            card.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; e.currentTarget.classList.add('dragging'); draggedItemIndex = index; };
-            card.ondragover = (e) => e.preventDefault();
-            card.ondrop = (e) => { e.preventDefault(); const targetCard = e.currentTarget; const targetIndex = parseInt(targetCard.getAttribute('data-index')); if (draggedItemIndex !== null && draggedItemIndex !== targetIndex) { const item = tasks.splice(draggedItemIndex, 1)[0]; tasks.splice(targetIndex, 0, item); saveToStorage(); renderTasks(); } };
-            card.ondragend = (e) => { e.currentTarget.classList.remove('dragging'); draggedItemIndex = null; };
-
-            card.addEventListener('touchstart', (e) => { draggedItemIndex = index; e.currentTarget.classList.add('dragging'); }, {passive: true});
-            card.addEventListener('touchend', (e) => {
-                e.currentTarget.classList.remove('dragging'); const touch = e.changedTouches[0]; const targetEl = document.elementFromPoint(touch.clientX, touch.clientY); const targetCard = targetEl?.closest('.card-container');
-                if (targetCard && draggedItemIndex !== null) { const targetIndex = parseInt(targetCard.getAttribute('data-index')); if (targetIndex !== draggedItemIndex && !isNaN(targetIndex)) { const item = tasks.splice(draggedItemIndex, 1)[0]; tasks.splice(targetIndex, 0, item); saveToStorage(); renderTasks(); } } draggedItemIndex = null;
-            });
-        }
-
-        card.innerHTML = `
-            <div class="card-inner ${!isDeleteMode && task.completed ? 'is-flipped' : ''} ${isDeleteMode ? 'cursor-default shake-card' : ''}" onclick="${isDeleteMode ? '' : `toggleTask(${task.id})`}">
-                <div class="card-front bg-white ${config.border.replace('100','200')} ${config.text} border-2 transition-all relative">
-                    <span class="${fontSizeClass} font-black px-1 text-center pointer-events-none break-all card-text-main leading-tight">${escapeHtml(taskT(task.text))}</span>
-                    ${isDeleteMode ? `
-                        <button onclick="event.stopPropagation(); deleteTask(${task.id})" aria-label="このタスクをけす" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg z-20 hover:bg-red-600 transition-transform hover:scale-110 active:scale-95">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                    ` : ''}
-                </div>
-                <div class="card-back bg-green-50 border-green-400 text-green-700 border-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" class="lg:w-8 lg:h-8 card-icon text-green-500 mb-1"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span class="text-[8px] lg:text-base font-black card-text-sub">${t('done')}</span>
-                </div>
-            </div>
-        `;
-        grid.appendChild(card);
+        grid.appendChild(createTaskCard(task, index, config, fontSizeClass));
     });
     updateProgress();
 }
