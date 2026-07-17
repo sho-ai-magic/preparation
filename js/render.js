@@ -48,7 +48,7 @@ function updateUIStrings() {
 }
 
 function updateCountdown(now) {
-    const [depH, depM] = departureTime.split(':').map(Number); const target = new Date(now); target.setHours(depH, depM, 0, 0); if (target < now) target.setDate(target.getDate() + 1);
+    const target = getDepartureTarget(now);
     const diff = target - now; const timerElement = document.getElementById('countdown-timer');
     if (diff <= 0 || (target - now) < 1000) {
         timerElement.innerHTML = `<span class="text-red-500 animate-bounce">${t('alarm_time')}</span>`;

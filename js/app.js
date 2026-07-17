@@ -30,8 +30,17 @@ function startClock() {
     }, 1000);
 }
 
+// 出発時刻のDateを返す。すでに過ぎていたら翌日に繰り越す（繰り越しあり用の共通ヘルパー）
+function getDepartureTarget(now) {
+    const [depH, depM] = departureTime.split(':').map(Number);
+    const target = new Date(now);
+    target.setHours(depH, depM, 0, 0);
+    if (target < now) target.setDate(target.getDate() + 1);
+    return target;
+}
+
 function checkAlarms(now) {
-    const [depH, depM] = departureTime.split(':').map(Number); const target = new Date(now); target.setHours(depH, depM, 0, 0); if (target < now) target.setDate(target.getDate() + 1);
+    const target = getDepartureTarget(now);
     const diffMins = Math.floor((target - now) / MS_PER_MINUTE); const isAllDone = tasks.length > 0 && tasks.every(task => task.completed);
     const duePoint = ALARM_POINTS.find(point => alarmConfig[point] && diffMins <= point && !triggeredAlarmPoints.has(point));
     if (duePoint === undefined) return;
