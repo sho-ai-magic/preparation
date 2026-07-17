@@ -82,11 +82,10 @@ function applyGridLayout(grid) {
         grid.className = "flex-1 min-h-0 grid grid-cols-4 gap-2 overflow-y-auto content-start pb-1 settings-scroll";
         grid.style.gridTemplateRows = `repeat(${Math.ceil(tasks.length / 4)}, minmax(0, 1fr))`;
     } else {
-        // スマホ縦：スクロールさせないのではなく、「1画面に収まるように高さを縮める」
-        // ただし文字が小さくなりすぎないよう最低限の高さは確保したいが、要望優先で1画面収めを試みる
-        grid.className = "flex-1 min-h-0 grid grid-cols-3 gap-2 lg:gap-4 overflow-hidden content-stretch pb-1";
-        // 行数で割る
-        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        // スマホ縦：タブレット縦と同じく2列。カードが正方形に近くなり文字も大きくできる
+        // （スクロールはさせず1画面に収める方針は維持）
+        grid.className = "flex-1 min-h-0 grid grid-cols-2 gap-2 overflow-hidden content-stretch pb-1";
+        grid.style.gridTemplateRows = `repeat(${Math.ceil(tasks.length / 2)}, 1fr)`;
     }
 
     // 画面サイズごとに文字サイズを調整
@@ -94,10 +93,12 @@ function applyGridLayout(grid) {
     if (isTabletPortrait) {
         // タブレット縦は2列でカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
         fontSizeClass = tasks.length > 9 ? 'text-2xl' : 'text-4xl';
+    } else if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
+        // スマホ横はカードが低いので小さめのまま
+        fontSizeClass = tasks.length > 9 ? 'text-[10px]' : 'text-[11px]';
     } else if (window.innerWidth < 1024) {
-        // タスク数が多い場合は文字を小さく
-        if (tasks.length > 9) fontSizeClass = 'text-[10px]';
-        else fontSizeClass = 'text-[11px]';
+        // スマホ縦は2列なので文字を大きく（タスク数が多い場合は一段小さく）
+        fontSizeClass = tasks.length > 9 ? 'text-sm' : 'text-lg';
     }
     return fontSizeClass;
 }
