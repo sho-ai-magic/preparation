@@ -54,7 +54,7 @@ function updateCountdown(now) {
         timerElement.innerHTML = `<span class="text-red-500 animate-bounce">${t('alarm_time')}</span>`;
     }
     else {
-        const totalMins = Math.ceil(diff / 60000); const h = Math.floor(totalMins / 60); const m = totalMins % 60;
+        const totalMins = Math.ceil(diff / MS_PER_MINUTE); const h = Math.floor(totalMins / 60); const m = totalMins % 60;
         let html = `<span class="text-[0.6em] mr-1 lg:mr-2 opacity-50 font-black uppercase tracking-widest leading-none">あと</span>`;
         if (h > 0) html += `<span class="${THEMES[theme].text}">${h}</span><span class="text-[0.5em] mx-0.5 lg:mx-1 font-black leading-none">${useKanji ? '時間':'じかん'}</span>`;
         html += `<span class="${THEMES[theme].text}">${m}</span><span class="text-[0.5em] mx-0.5 lg:mx-1 font-black leading-none">${useKanji ? '分':'ふん'}</span>`;
@@ -134,7 +134,7 @@ function renderTasks() {
 function renderStamps() {
     const container = document.getElementById('stamp-row'); container.innerHTML = '';
     const daysLabels = t('days');
-    [1, 2, 3, 4, 5, 6, 0].forEach(d => {
+    DAY_ORDER.forEach(d => {
         if (!enabledDays[d]) return;
         const earned = stamps[d]; const div = document.createElement('div');
         div.className = `flex-1 flex flex-col items-center p-1 lg:p-2 rounded-2xl border ${earned ? 'bg-yellow-50 border-yellow-200 shadow-sm' : 'bg-slate-50 border-slate-100'} h-[85%] aspect-square lg:aspect-auto justify-center min-w-0 transition-all flex-shrink`;
@@ -146,7 +146,7 @@ function renderStamps() {
 function renderDayToggles() {
     const container = document.getElementById('day-toggle-list'); if(!container) return; container.innerHTML = '';
     const daysLabels = t('days'); const config = THEMES[theme];
-    [1, 2, 3, 4, 5, 6, 0].forEach(d => {
+    DAY_ORDER.forEach(d => {
         const active = enabledDays[d]; const btn = document.createElement('button');
         btn.className = `p-1 lg:p-3 rounded-xl text-xs lg:text-lg font-black border-2 transition-all flex-1 ${active ? (config.primary + ' text-white ' + config.primaryDark.replace('bg-','border-')) : 'bg-white text-slate-400 border-slate-100'}`;
         btn.textContent = daysLabels[d]; btn.onclick = () => { enabledDays[d] = !enabledDays[d]; renderDayToggles(); renderStamps(); saveToStorage(); };
@@ -157,12 +157,12 @@ function renderDayToggles() {
 function renderAlarmSettings() {
     const list = document.getElementById('alarm-list'); if(!list) return; list.innerHTML = '';
     const minLabel = t('alarm_min'); const undoneLabel = t('alarm_only_undone');
-    [30, 20, 10, 5, 0].forEach(p => {
+    ALARM_POINTS.forEach(p => {
         const active = alarmConfig[p]; const item = document.createElement('div');
         item.className = `flex items-center justify-between px-3 lg:px-6 py-2 lg:py-4 rounded-2xl border-2 transition-all cursor-pointer ${active ? 'bg-white border-orange-300 shadow-sm' : 'bg-white border-slate-100 opacity-60'}`;
         item.onclick = () => { alarmConfig[p] = !alarmConfig[p]; renderAlarmSettings(); saveToStorage(); };
         const label = p === 0 ? t('alarm_time') : `${p}${minLabel}`;
-        item.innerHTML = `<div class="flex flex-col"><span class="font-black text-sm lg:text-lg ${active ? 'text-orange-600' : 'text-slate-400'}">${label}</span>${[30, 20, 10].includes(p) ? `<span class="text-[8px] lg:text-xs text-slate-300 font-bold">${undoneLabel}</span>` : ''}</div><div class="text-lg lg:text-2xl">${active ? '🔔' : '🔕'}</div>`;
+        item.innerHTML = `<div class="flex flex-col"><span class="font-black text-sm lg:text-lg ${active ? 'text-orange-600' : 'text-slate-400'}">${label}</span>${SKIP_WHEN_DONE_POINTS.includes(p) ? `<span class="text-[8px] lg:text-xs text-slate-300 font-bold">${undoneLabel}</span>` : ''}</div><div class="text-lg lg:text-2xl">${active ? '🔔' : '🔕'}</div>`;
         list.appendChild(item);
     });
 }
@@ -174,4 +174,4 @@ function updateProgress() {
     if (total > 0 && completed === total && !isSettingsMode && !celebrationShownToday && !isDeleteMode) { celebrationShownToday = true; handleCompletion(); }
 }
 
-function showToast(msg) { const toastEl = document.getElementById('toast'); if(!toastEl) return; toastEl.textContent = msg; toastEl.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none'); setTimeout(() => toastEl.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none'), 3000); }
+function showToast(msg) { const toastEl = document.getElementById('toast'); if(!toastEl) return; toastEl.textContent = msg; toastEl.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none'); setTimeout(() => toastEl.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none'), TOAST_DURATION_MS); }

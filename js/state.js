@@ -15,11 +15,11 @@ let theme = 'blue';
 
 function saveToStorage() {
     const data = { tasks, departureTime, saveDate: new Date().toDateString(), alarmConfig, celebrationShownToday, enabledDays, stamps, perfectWeekCount, useKanji, theme };
-    localStorage.setItem('morning_routine_v3_data', JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 function loadFromStorage() {
-    const savedData = localStorage.getItem('morning_routine_v3_data');
+    const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
         try {
             const parsed = JSON.parse(savedData);

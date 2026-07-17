@@ -41,5 +41,14 @@ const DEFAULT_TASKS = [
     { id: 7, text: 'かみのけ', completed: false }
 ];
 
+// マジックナンバーの定数化（値は既存コードと完全に同一）
+const STORAGE_KEY = 'morning_routine_v3_data';        // localStorageの保存キー
+const ALARM_POINTS = [30, 20, 10, 5, 0];              // アラームを鳴らす「出発何分前」の一覧
+const SKIP_WHEN_DONE_POINTS = [30, 20, 10];           // 全完了時はアラームを鳴らさない分前
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];              // 曜日の並び順（月〜日）
+const MS_PER_MINUTE = 60000;                          // 1分をミリ秒に換算した値
+const CONFETTI_COUNT = 60;                            // お祝い時の紙吹雪の数
+const TOAST_DURATION_MS = 3000;                       // トーストを表示し続けるミリ秒
+
 function t(key) { return DICT[useKanji ? 'kanji' : 'kana'][key] || key; }
 function taskT(name) { return useKanji ? (DICT.kanji.task_map[name] || name) : name; }

@@ -32,11 +32,11 @@ function startClock() {
 
 function checkAlarms(now) {
     const [depH, depM] = departureTime.split(':').map(Number); const target = new Date(now); target.setHours(depH, depM, 0, 0); if (target < now) target.setDate(target.getDate() + 1);
-    const diffMins = Math.floor((target - now) / 60000); const isAllDone = tasks.length > 0 && tasks.every(task => task.completed);
-    const duePoint = [30, 20, 10, 5, 0].find(point => alarmConfig[point] && diffMins <= point && !triggeredAlarmPoints.has(point));
+    const diffMins = Math.floor((target - now) / MS_PER_MINUTE); const isAllDone = tasks.length > 0 && tasks.every(task => task.completed);
+    const duePoint = ALARM_POINTS.find(point => alarmConfig[point] && diffMins <= point && !triggeredAlarmPoints.has(point));
     if (duePoint === undefined) return;
     triggeredAlarmPoints.add(duePoint);
-    if ([30, 20, 10].includes(duePoint) && isAllDone) return;
+    if (SKIP_WHEN_DONE_POINTS.includes(duePoint) && isAllDone) return;
     showAlarm(duePoint);
 }
 
@@ -79,7 +79,7 @@ function showCelebration(isPerfect, isOnTime) {
 
     speakText(speechMsg);
     const container = document.getElementById('confetti-container'); container.innerHTML = '';
-    for (let i = 0; i < 60; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw'; c.style.backgroundColor = ['#f472b6', '#fb7185', '#fbbf24', '#60a5fa', '#a78bfa'][Math.floor(Math.random() * 5)]; c.style.animationDelay = Math.random() * 3 + 's'; c.style.width = '10px'; c.style.height = '10px'; container.appendChild(c); }
+    for (let i = 0; i < CONFETTI_COUNT; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw'; c.style.backgroundColor = ['#f472b6', '#fb7185', '#fbbf24', '#60a5fa', '#a78bfa'][Math.floor(Math.random() * 5)]; c.style.animationDelay = Math.random() * 3 + 's'; c.style.width = '10px'; c.style.height = '10px'; container.appendChild(c); }
     overlay?.classList.remove('hidden');
 }
 
