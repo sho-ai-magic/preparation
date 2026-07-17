@@ -27,6 +27,12 @@ function loadFromStorage() {
             if (parsed.saveDate !== today) { tasks = (parsed.tasks || DEFAULT_TASKS).map(task => ({ ...task, completed: false })); celebrationShownToday = false; }
             else { tasks = parsed.tasks || DEFAULT_TASKS; celebrationShownToday = parsed.celebrationShownToday || false; }
             departureTime = parsed.departureTime || "08:00"; alarmConfig = parsed.alarmConfig || alarmConfig; enabledDays = parsed.enabledDays || enabledDays; stamps = parsed.stamps || stamps; perfectWeekCount = parsed.perfectWeekCount || 0; useKanji = parsed.useKanji || false; theme = parsed.theme || 'blue';
+            // 週が変わっていたらスタンプをリセット（saveDateが不正な場合は安全側=リセットしない）
+            const savedDate = new Date(parsed.saveDate);
+            if (!isNaN(savedDate) && getWeekStartString(savedDate) !== getWeekStartString(new Date())) {
+                stamps = stamps.map(() => false);
+                saveToStorage();
+            }
             safeUpdate('perfect-count', perfectWeekCount);
         } catch (e) { tasks = DEFAULT_TASKS; }
     } else { tasks = DEFAULT_TASKS; }

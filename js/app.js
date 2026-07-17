@@ -23,7 +23,7 @@ function speakText(text) { if ('speechSynthesis' in window) { const uttr = new S
 
 function startClock() {
     setInterval(() => {
-        const now = new Date(); if (now.toDateString() !== lastDateString) { if (now.getDay() === 1) { stamps = stamps.map(() => false); } lastDateString = now.toDateString(); celebrationShownToday = false; triggeredAlarmPoints.clear(); resetAll(); }
+        const now = new Date(); if (now.toDateString() !== lastDateString) { if (getWeekStartString(new Date(lastDateString)) !== getWeekStartString(now)) { stamps = stamps.map(() => false); } lastDateString = now.toDateString(); celebrationShownToday = false; triggeredAlarmPoints.clear(); resetAll(); }
         document.getElementById('digital-clock').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         document.getElementById('digital-seconds').textContent = String(now.getSeconds()).padStart(2, '0');
         updateCountdown(now); checkAlarms(now);
