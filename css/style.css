@@ -107,11 +107,16 @@ body {
 }
 .earned-stamp { animation: shine 2s infinite; }
 
-/* ========== タブレット縦向き（幅640〜1023px・高さ600px以上） ==========
-   Tailwindのlg(1024px)未満は全てスマホ扱いになるため、
-   タブレット縦だけ中間サイズをIDセレクタで上書きする（IDはTailwindクラスより優先） */
-@media (min-width: 640px) and (max-width: 1023px) and (min-height: 600px) {
-    #info-panel       { height: 22dvh; }
+/* ========== タブレット縦向き（幅640px以上・縦長画面） ==========
+   iPad Pro等は縦向きでも論理幅が1024px以上ありTailwindのlg(横向き用の左右分割)が
+   効いてしまうため、「縦向きかどうか」で判定し、IDセレクタで上書きする（IDはTailwindクラスより優先）。
+   レイアウト: 時計・カウントダウン・スタンプを上部に横並び、タスクカードは下に2列 */
+@media (min-width: 640px) and (orientation: portrait) {
+    /* 上下配置に強制（lg:flex-row・lg:order等を打ち消す） */
+    #main-layout      { flex-direction: column; }
+    #info-panel       { flex-direction: row; order: 1; width: 100%; height: 20dvh; }
+    #task-panel       { order: 2; }
+
     #digital-clock    { font-size: 4rem; }
     #digital-seconds  { font-size: 1.25rem; margin-top: 0.25rem; }
     #label-remaining  { font-size: 0.875rem; margin-bottom: 0.5rem; }
@@ -120,6 +125,7 @@ body {
     #progress-text    { font-size: 0.875rem; }
     #label-stamp      { font-size: 0.875rem; }
     #stamp-card #label-stamp ~ div { font-size: 1rem; }  /* 🏆カウンター */
+    #stamp-row > div  { max-height: 110px; }             /* スタンプが縦長ピルに伸びるのを防ぐ */
     #stamp-row .stamp-day  { font-size: 0.875rem; }
     #stamp-row .stamp-icon { font-size: 1.75rem; }
 }

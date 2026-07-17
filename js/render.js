@@ -65,17 +65,17 @@ function updateCountdown(now) {
 // グリッドの列数・行数・文字サイズを画面サイズに応じて適用し、カード用の文字サイズクラスを返す
 function applyGridLayout(grid) {
     const rows = Math.ceil(tasks.length / 3);
-    // タブレット縦: 幅640〜1023px かつ 高さ600px以上（スマホ横向きは高さ500px以下なので誤爆しない）
-    const isTabletPortrait = window.innerWidth >= 640 && window.innerWidth < 1024 && window.innerHeight >= 600;
+    // タブレット縦: 幅640px以上の縦長画面（iPad Pro縦の幅1024px以上も含む。CSSのorientation:portrait判定と揃える）
+    const isTabletPortrait = window.innerWidth >= 640 && window.innerHeight > window.innerWidth;
 
     // PC/タブレットは1画面に収めるため等割、スマホは縦に伸ばして均等割
-    if (window.innerWidth >= 1024) {
+    if (isTabletPortrait) {
+        // タブレット縦: 2列・1画面収め（カードが縦長に間延びしないよう列数を減らす）
+        grid.className = "flex-1 min-h-0 grid grid-cols-2 gap-3 overflow-hidden content-stretch pb-1";
+        grid.style.gridTemplateRows = `repeat(${Math.ceil(tasks.length / 2)}, 1fr)`;
+    } else if (window.innerWidth >= 1024) {
         // PC/タブレット
         grid.className = "flex-1 min-h-0 grid grid-cols-3 gap-2 lg:gap-4 overflow-hidden content-stretch pb-1";
-        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-    } else if (isTabletPortrait) {
-        // タブレット縦: PCと同じ3列・1画面収め（文字サイズはタブレット向けに大きく）
-        grid.className = "flex-1 min-h-0 grid grid-cols-3 gap-3 overflow-hidden content-stretch pb-1";
         grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     } else if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
          // スマホ横向き
@@ -92,8 +92,8 @@ function applyGridLayout(grid) {
     // 画面サイズごとに文字サイズを調整
     let fontSizeClass = 'text-[10px] lg:text-xl';
     if (isTabletPortrait) {
-        // タブレット縦はカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
-        fontSizeClass = tasks.length > 9 ? 'text-base' : 'text-xl';
+        // タブレット縦は2列でカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
+        fontSizeClass = tasks.length > 9 ? 'text-xl' : 'text-2xl';
     } else if (window.innerWidth < 1024) {
         // タスク数が多い場合は文字を小さく
         if (tasks.length > 9) fontSizeClass = 'text-[10px]';
