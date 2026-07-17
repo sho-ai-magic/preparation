@@ -67,6 +67,15 @@ body {
         height: 16px !important;
         margin-bottom: 0 !important;
     }
+    /* 上部ボックスの文字をボックスサイズに合わせて拡大（IDはTailwindクラスより優先） */
+    #digital-clock    { font-size: 2.25rem; }
+    #digital-seconds  { font-size: 0.75rem; }
+    #label-remaining  { font-size: 11px; margin-bottom: 0.25rem; }
+    #countdown-timer  { font-size: 1.125rem; }
+    #label-title-main { font-size: 1.5rem; }
+    #label-stamp      { font-size: 10px; }
+    #stamp-row .stamp-day  { font-size: 10px; }
+    #stamp-row .stamp-icon { font-size: 1.125rem; }
 }
 
 .card-back {

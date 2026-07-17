@@ -94,8 +94,8 @@ function applyGridLayout(grid) {
         // タブレット縦は2列でカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
         fontSizeClass = tasks.length > 9 ? 'text-2xl' : 'text-4xl';
     } else if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
-        // スマホ横はカードが低いので小さめのまま
-        fontSizeClass = tasks.length > 9 ? 'text-[10px]' : 'text-[11px]';
+        // スマホ横: カードは低いが幅はあるので読みやすいサイズに（タスク数が多い場合は一段小さく）
+        fontSizeClass = tasks.length > 9 ? 'text-sm' : 'text-base';
     } else if (window.innerWidth < 1024) {
         // スマホ縦は2列なので文字を大きく（タスク数が多い場合は一段小さく）
         fontSizeClass = tasks.length > 9 ? 'text-sm' : 'text-lg';
