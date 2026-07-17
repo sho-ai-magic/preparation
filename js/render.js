@@ -115,7 +115,7 @@ function renderTasks() {
                 <div class="card-front bg-white ${config.border.replace('100','200')} ${config.text} border-2 transition-all relative">
                     <span class="${fontSizeClass} font-black px-1 text-center pointer-events-none break-all card-text-main leading-tight">${escapeHtml(taskT(task.text))}</span>
                     ${isDeleteMode ? `
-                        <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg z-20 hover:bg-red-600 transition-transform hover:scale-110 active:scale-95">
+                        <button onclick="event.stopPropagation(); deleteTask(${task.id})" aria-label="このタスクをけす" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 shadow-lg z-20 hover:bg-red-600 transition-transform hover:scale-110 active:scale-95">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     ` : ''}

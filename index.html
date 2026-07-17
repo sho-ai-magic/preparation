@@ -53,7 +53,7 @@
                         <span id="progress-text" class="font-bold text-[10px] lg:text-xl text-slate-400">0 / 0</span>
                     </div>
                 </div>
-                <button onclick="toggleSettings()" id="settings-btn" class="p-2 lg:p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 transition-colors">
+                <button onclick="toggleSettings()" id="settings-btn" aria-label="せってい" class="p-2 lg:p-3 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lg:w-7 lg:h-7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
@@ -66,8 +66,8 @@
                 <!-- 通常モードの操作群 -->
                 <div id="normal-controls" class="flex justify-between items-center w-full">
                     <div id="add-task-form" class="flex gap-2 items-center">
-                        <input type="text" id="new-task-input" placeholder="タスクをついか" class="w-28 lg:w-64 px-3 py-1.5 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-[10px] lg:text-base focus:border-blue-200 transition-all">
-                        <button id="add-task-btn" onclick="addTask()" class="bg-blue-500 text-white p-1.5 rounded-xl active:scale-95 transition-all">
+                        <input type="text" id="new-task-input" placeholder="タスクをついか" aria-label="あたらしいタスク" class="w-28 lg:w-64 px-3 py-1.5 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-[10px] lg:text-base focus:border-blue-200 transition-all">
+                        <button id="add-task-btn" onclick="addTask()" aria-label="タスクをついかする" class="bg-blue-500 text-white p-1.5 rounded-xl active:scale-95 transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="lg:w-5 lg:h-5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         </button>
                     </div>
@@ -93,7 +93,7 @@
             <!-- ヘッダー -->
             <div class="px-6 lg:px-10 py-4 lg:py-6 border-b flex justify-between items-center shrink-0">
                 <h3 id="label-settings-title" class="text-2xl lg:text-3xl font-black text-slate-800 tracking-tight">せってい</h3>
-                <button onclick="toggleSettings()" class="bg-slate-100 p-2.5 rounded-full hover:bg-slate-200 transition-colors">
+                <button onclick="toggleSettings()" aria-label="せっていをとじる" class="bg-slate-100 p-2.5 rounded-full hover:bg-slate-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
@@ -117,10 +117,10 @@
                     <section>
                         <h4 id="label-theme-setting" class="text-xl lg:text-2xl font-black mb-4 text-slate-400 uppercase tracking-widest border-l-8 border-blue-400 pl-4 leading-none">テーマカラー</h4>
                         <div class="grid grid-cols-4 gap-3 px-2">
-                            <button onclick="changeTheme('blue')" class="h-12 lg:h-14 rounded-2xl bg-blue-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
-                            <button onclick="changeTheme('pink')" class="h-12 lg:h-14 rounded-2xl bg-rose-400 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
-                            <button onclick="changeTheme('green')" class="h-12 lg:h-14 rounded-2xl bg-emerald-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
-                            <button onclick="changeTheme('orange')" class="h-12 lg:h-14 rounded-2xl bg-orange-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
+                            <button onclick="changeTheme('blue')" aria-label="あお" class="h-12 lg:h-14 rounded-2xl bg-blue-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
+                            <button onclick="changeTheme('pink')" aria-label="ぴんく" class="h-12 lg:h-14 rounded-2xl bg-rose-400 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
+                            <button onclick="changeTheme('green')" aria-label="みどり" class="h-12 lg:h-14 rounded-2xl bg-emerald-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
+                            <button onclick="changeTheme('orange')" aria-label="おれんじ" class="h-12 lg:h-14 rounded-2xl bg-orange-500 border-4 border-white shadow-sm hover:scale-105 transition-transform"></button>
                         </div>
                     </section>
 
