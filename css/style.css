@@ -117,17 +117,18 @@ body {
     #info-panel       { flex-direction: row; order: 1; width: 100%; height: 20dvh; }
     #task-panel       { order: 2; }
 
-    #digital-clock    { font-size: 4rem; }
-    #digital-seconds  { font-size: 1.25rem; margin-top: 0.25rem; }
-    #label-remaining  { font-size: 0.875rem; margin-bottom: 0.5rem; }
-    #countdown-timer  { font-size: 1.75rem; }
-    #label-title-main { font-size: 1.75rem; }
-    #progress-text    { font-size: 0.875rem; }
-    #label-stamp      { font-size: 0.875rem; }
-    #stamp-card #label-stamp ~ div { font-size: 1rem; }  /* 🏆カウンター */
-    #stamp-row > div  { max-height: 110px; }             /* スタンプが縦長ピルに伸びるのを防ぐ */
-    #stamp-row .stamp-day  { font-size: 0.875rem; }
-    #stamp-row .stamp-icon { font-size: 1.75rem; }
+    /* 文字サイズは画面幅に連動させ、上限付きにする（幅768pxの小さめタブレットでもはみ出さない） */
+    #digital-clock    { font-size: min(5rem, 9.5vw); }
+    #digital-seconds  { font-size: 1.5rem; margin-top: 0.25rem; }
+    #label-remaining  { font-size: 1rem; margin-bottom: 0.75rem; }
+    #countdown-timer  { font-size: min(2.25rem, 4.4vw); }
+    #label-title-main { font-size: 2.25rem; }
+    #progress-text    { font-size: 1rem; }
+    #label-stamp      { font-size: 1rem; }
+    #stamp-card #label-stamp ~ div { font-size: 1.25rem; }  /* 🏆カウンター */
+    #stamp-row > div  { max-height: 130px; }                /* スタンプが縦長ピルに伸びるのを防ぐ */
+    #stamp-row .stamp-day  { font-size: 1rem; }
+    #stamp-row .stamp-icon { font-size: 2.25rem; }
 }
 
 /* スマホ縦: 週間スタンプカードに幅を多めに配分（7マスが潰れないように） */

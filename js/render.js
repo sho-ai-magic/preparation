@@ -93,7 +93,7 @@ function applyGridLayout(grid) {
     let fontSizeClass = 'text-[10px] lg:text-xl';
     if (isTabletPortrait) {
         // タブレット縦は2列でカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
-        fontSizeClass = tasks.length > 9 ? 'text-xl' : 'text-2xl';
+        fontSizeClass = tasks.length > 9 ? 'text-2xl' : 'text-4xl';
     } else if (window.innerWidth < 1024) {
         // タスク数が多い場合は文字を小さく
         if (tasks.length > 9) fontSizeClass = 'text-[10px]';
