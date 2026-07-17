@@ -107,6 +107,28 @@ body {
 }
 .earned-stamp { animation: shine 2s infinite; }
 
+/* ========== タブレット縦向き（幅640〜1023px・高さ600px以上） ==========
+   Tailwindのlg(1024px)未満は全てスマホ扱いになるため、
+   タブレット縦だけ中間サイズをIDセレクタで上書きする（IDはTailwindクラスより優先） */
+@media (min-width: 640px) and (max-width: 1023px) and (min-height: 600px) {
+    #info-panel       { height: 22dvh; }
+    #digital-clock    { font-size: 4rem; }
+    #digital-seconds  { font-size: 1.25rem; margin-top: 0.25rem; }
+    #label-remaining  { font-size: 0.875rem; margin-bottom: 0.5rem; }
+    #countdown-timer  { font-size: 1.75rem; }
+    #label-title-main { font-size: 1.75rem; }
+    #progress-text    { font-size: 0.875rem; }
+    #label-stamp      { font-size: 0.875rem; }
+    #stamp-card #label-stamp ~ div { font-size: 1rem; }  /* 🏆カウンター */
+    #stamp-row .stamp-day  { font-size: 0.875rem; }
+    #stamp-row .stamp-icon { font-size: 1.75rem; }
+}
+
+/* スマホ縦: 週間スタンプカードに幅を多めに配分（7マスが潰れないように） */
+@media (max-width: 639px) {
+    #stamp-card { flex: 1.4; }
+}
+
 .settings-scroll::-webkit-scrollbar { width: 6px; }
 .settings-scroll::-webkit-scrollbar-track { background: transparent; }
 .settings-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }

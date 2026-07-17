@@ -65,11 +65,17 @@ function updateCountdown(now) {
 // グリッドの列数・行数・文字サイズを画面サイズに応じて適用し、カード用の文字サイズクラスを返す
 function applyGridLayout(grid) {
     const rows = Math.ceil(tasks.length / 3);
+    // タブレット縦: 幅640〜1023px かつ 高さ600px以上（スマホ横向きは高さ500px以下なので誤爆しない）
+    const isTabletPortrait = window.innerWidth >= 640 && window.innerWidth < 1024 && window.innerHeight >= 600;
 
     // PC/タブレットは1画面に収めるため等割、スマホは縦に伸ばして均等割
     if (window.innerWidth >= 1024) {
         // PC/タブレット
         grid.className = "flex-1 min-h-0 grid grid-cols-3 gap-2 lg:gap-4 overflow-hidden content-stretch pb-1";
+        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    } else if (isTabletPortrait) {
+        // タブレット縦: PCと同じ3列・1画面収め（文字サイズはタブレット向けに大きく）
+        grid.className = "flex-1 min-h-0 grid grid-cols-3 gap-3 overflow-hidden content-stretch pb-1";
         grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     } else if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
          // スマホ横向き
@@ -83,12 +89,15 @@ function applyGridLayout(grid) {
         grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
     }
 
-    // スマホ縦・横で文字サイズをさらに調整
+    // 画面サイズごとに文字サイズを調整
     let fontSizeClass = 'text-[10px] lg:text-xl';
-    if (window.innerWidth < 1024) {
+    if (isTabletPortrait) {
+        // タブレット縦はカードが大きいので文字も大きく（タスク数が多い場合は一段小さく）
+        fontSizeClass = tasks.length > 9 ? 'text-base' : 'text-xl';
+    } else if (window.innerWidth < 1024) {
         // タスク数が多い場合は文字を小さく
-        if (tasks.length > 9) fontSizeClass = 'text-[9px]';
-        else fontSizeClass = 'text-[10px]';
+        if (tasks.length > 9) fontSizeClass = 'text-[10px]';
+        else fontSizeClass = 'text-[11px]';
     }
     return fontSizeClass;
 }
@@ -153,8 +162,9 @@ function renderStamps() {
     DAY_ORDER.forEach(d => {
         if (!enabledDays[d]) return;
         const earned = stamps[d]; const div = document.createElement('div');
-        div.className = `flex-1 flex flex-col items-center p-1 lg:p-2 rounded-2xl border ${earned ? 'bg-yellow-50 border-yellow-200 shadow-sm' : 'bg-slate-50 border-slate-100'} h-[85%] aspect-square lg:aspect-auto justify-center min-w-0 transition-all flex-shrink`;
-        div.innerHTML = `<span class="text-[6px] lg:text-sm font-black ${earned ? 'text-yellow-600' : 'text-gray-400'} mb-0.5 lg:mb-1">${daysLabels[d]}</span><span class="text-sm lg:text-5xl ${earned ? 'earned-stamp' : 'opacity-10 grayscale'}">${earned ? '🌟' : '◯'}</span>`;
+        // aspect-square（正方形固定）はflex-1（均等割り）と矛盾して狭い画面で潰れるため使わない
+        div.className = `flex-1 flex flex-col items-center p-1 lg:p-2 rounded-2xl border ${earned ? 'bg-yellow-50 border-yellow-200 shadow-sm' : 'bg-slate-50 border-slate-100'} h-[85%] justify-center min-w-0 transition-all`;
+        div.innerHTML = `<span class="stamp-day text-[8px] lg:text-sm font-black ${earned ? 'text-yellow-600' : 'text-gray-400'} mb-0.5 lg:mb-1">${daysLabels[d]}</span><span class="stamp-icon text-sm lg:text-5xl ${earned ? 'earned-stamp' : 'opacity-10 grayscale'}">${earned ? '🌟' : '◯'}</span>`;
         container.appendChild(div);
     });
 }
